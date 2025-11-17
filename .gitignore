@@ -205,3 +205,30 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Python/Conda environments
+env/
+venv/
+.venv/
+build/
+dist/
+
+# Caches
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Data (if not tracked by LFS)
+*.csv
+*.h5
+*.out
+*.xml
+*.npy
+*.npz
+*.pkl
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+data/
