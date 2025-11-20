@@ -1,6 +1,13 @@
 import openmc
 import math
 import numpy as np
+import sys
+import os
+
+# --- This block must run first to make 'models' and 'src' available ---
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
+# ---------------------------------------------------------------------
 from models.msrr.lattice_data import get_pin_rows
 
 # --- Base Settings ---
@@ -13,8 +20,8 @@ def get_base_settings():
     settings.run_mode = 'fixed source'
     settings.create_fission_neutrons = False
     settings.temperature = {'method': 'interpolation'}
-    settings.batches = 10
-    settings.particles = 1000
+    settings.batches = 100
+    settings.particles = 100000
     
     return settings
 

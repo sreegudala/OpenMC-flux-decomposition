@@ -2,16 +2,35 @@ import openmc
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
-from openmc_cylindrical_mesh_plotter import plot_mesh_tally_phir_slice
 import sys
 import os
 
-def plot_cylindrical_flux(statepoint_path):
+def plot_phir_slice_from_statepoint(statepoint_path):
+    """
+    Generates polar plots of flux for each energy bin from a cylindrical mesh tally
+    stored in the given OpenMC statepoint file.
+    Parameters:
+    -----------
+    statepoint_path : str
+        Path to the OpenMC statepoint file.
+    Returns:
+    --------
+    plots : list of matplotlib.axes.Axes
+        List of polar plot axes for each energy bin.
+    """
+    
     statepoint = openmc.StatePoint(statepoint_path)
 
     tally = statepoint.get_tally(name="cyl_tally")
+    
+    statepoint.close()
 
     energy_bins = tally.find_filter(openmc.EnergyFilter).bins
+
+    # Lazy import to avoid import-time failures when module isn't needed
+    from openmc_cylindrical_mesh_plotter import plot_mesh_tally_phir_slice
+
+    plots = []
 
     for i, energy_bin in enumerate(energy_bins):
         flux_values = tally.get_slice(
@@ -21,16 +40,10 @@ def plot_cylindrical_flux(statepoint_path):
         )
 
         # Generate the plot
-        plot = plot_mesh_tally_phir_slice(tally=flux_values)
+        plots.append(plot_mesh_tally_phir_slice(tally=flux_values))
+    
+    return plots
 
-        #'''
-        #Plot flux graphs
-        # Save the plot with a filename indicating the energy bin
-        plot.figure.savefig(f"energy_bin_{i}_flux_phi_r.png")
-        print(f"Saved plot for energy bin {i}: energy_bin_{i}_flux_phi_r.png")
-        #'''
-
-    statepoint.close()
 
 def plot_phir_slice(tally_data, volumes, phi_grid, r_grid, slice_index=1):
     """
@@ -38,6 +51,9 @@ def plot_phir_slice(tally_data, volumes, phi_grid, r_grid, slice_index=1):
     Normalizes the data by the volume of the mesh elements.
     """
     
+    # Reshape the Data
+    tally_data = np.reshape(tally_data, volumes.shape, order='F')
+
     # Accept either 3D (r,phi,z) or 2D (r,phi)
     if tally_data.ndim == 3:
         data = tally_data[:, :, slice_index]
@@ -62,12 +78,16 @@ def plot_phir_slice(tally_data, volumes, phi_grid, r_grid, slice_index=1):
     fig.colorbar(im)
     return axes
 
+
 def plot_phir_slice_log(tally_data, volumes, phi_grid, r_grid,
                         slice_index=1, vmin=None, vmax=None, small=1e-15):
     """
     (Log) Plots a 2D (phi, r) slice of 3D cylindrical mesh data on a polar plot.
     Normalizes the data by the volume of the mesh elements.
     """
+
+    # Reshape the Data
+    tally_data = np.reshape(tally_data, volumes.shape, order='F')
 
     if tally_data.ndim == 3:
         data = tally_data[:, :, slice_index]
@@ -110,4 +130,9 @@ if __name__ == "__main__":
     # statepoint_path = os.path.join(project_root, 'data', 'run_full_source_nonlinear', "statepoint.10.h5")
     # statepoint_path = os.path.join(project_root, 'data', 'run_individual_sources_flat', "source_0001","statepoint.10.h5")
 
-    plot_cylindrical_flux(statepoint_path)
+    plots = plot_phir_slice_from_statepoint(statepoint_path)
+    for i, plot in enumerate(plots):
+        plot.figure.savefig(f"energy_bin_{i}_flux_phi_r.png")
+        print(f"Saved plot for energy bin {i}: energy_bin_{i}_flux_phi_r.png")
+        plt.close(plot.figure)
+    
