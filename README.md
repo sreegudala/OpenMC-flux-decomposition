@@ -24,7 +24,7 @@ cd openmc-flux-decomposition
 conda env create -f environment.yml
 
 # Activate the new environment
-conda activate openmc-flux-decomposition # (or the name specified in the .yml file)
+conda activate openmc-flux-env
 ```
 
 ## Workflow Execution
